@@ -1,7 +1,8 @@
 import logging, typing
 import json
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
 from contextlib import asynccontextmanager
@@ -27,7 +28,7 @@ logger.info(
     f'{cfg.model_dump_json(by_alias=True, indent=4)}'
 )
 
-hash_context = HashContext(cfg.JWT_SECRET, cfg.JWT_REFRESH_SECRET)
+hash_context = HashContext(cfg.JWT_SECRET.get_secret_value(), cfg.JWT_REFRESH_SECRET.get_secret_value())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -62,8 +63,8 @@ app = FastAPI(
          summary="Register",
          tags=["auth"]
 )
-async def login(data: schemas.CreateUserSchema, session: AsyncSession = Depends(get_async_session)):
-    existing_user = models.get_user_db(session, data.email)
+async def register(data: schemas.CreateUserSchema, session: AsyncSession = Depends(get_async_session)):
+    existing_user = await models.get_user_db(session, data.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="User with this email already exists")
 
@@ -79,6 +80,43 @@ async def login(data: schemas.CreateUserSchema, session: AsyncSession = Depends(
     await session.commit()
 
     return JSONResponse(content={"message": "User created successfully"})
+
+
+@app.post('/auth/login', 
+          summary="Create access and refresh tokens for user", 
+          response_model=schemas.TokenSchema,
+          tags=["auth"]
+          )
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_async_session)):
+    email = form_data.username
+    user = await models.get_user_db(session, email)
+    
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "message": "Incorrect email or password",
+            }
+        )
+
+    hashed_pass = user.hashed_password
+    if not hash_context.verify_password(form_data.password, hashed_pass):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
+        
+    
+    return {
+        "access_token": hash_context.create_access_token(user.email),
+        "refresh_token": hash_context.create_refresh_token(user.email),
+    }
+
+
+
+
+
+
 
 @app.get(
     "/groups",
