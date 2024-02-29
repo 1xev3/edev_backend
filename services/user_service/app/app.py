@@ -2,15 +2,15 @@ import logging, typing
 import json
 
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from . import config, schemas, group_crud
-from .utils import HashContext
+from .utils import HashContext, JWTBearer
 from .database import get_async_session, models, DB_INITIALIZER
 
 
@@ -28,6 +28,7 @@ logger.info(
     f'{cfg.model_dump_json(by_alias=True, indent=4)}'
 )
 
+#revoke tokens. you can use redis for that in prod
 hash_context = HashContext(cfg.JWT_SECRET.get_secret_value(), cfg.JWT_REFRESH_SECRET.get_secret_value())
 
 @asynccontextmanager
@@ -58,6 +59,29 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+#redirect
+@app.get('/', response_class=RedirectResponse, include_in_schema=False)
+async def docs():
+    return RedirectResponse(url='/docs')
+
+#login form, get current user
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+async def get_current_user(session: AsyncSession = Depends(get_async_session), data: str = Depends(oauth2_scheme)):
+    acc = hash_context.decode_access_token(data)
+
+    if acc:
+        email = acc["sub"]
+        return await models.get_user_db(session, email)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+
+
 
 @app.post("/auth/register", 
          summary="Register",
@@ -80,6 +104,17 @@ async def register(data: schemas.CreateUserSchema, session: AsyncSession = Depen
     await session.commit()
 
     return JSONResponse(content={"message": "User created successfully"})
+
+
+@app.get("/users/me",tags=["users"])
+async def users_me(user: models.User = Depends(get_current_user)) -> schemas.UserSchema:
+    return user
+
+@app.post("/auth/logout",tags=["auth"])
+async def logout(token: str = Depends(oauth2_scheme)) -> schemas.UserSchema:
+    hash_context.add_token_to_deny_list(token)
+    return JSONResponse(content={"message": "Exited"})
+
 
 
 @app.post('/auth/login', 
@@ -109,7 +144,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Async
     
     return {
         "access_token": hash_context.create_access_token(user.email),
-        "refresh_token": hash_context.create_refresh_token(user.email),
+        "refresh_token": hash_context.create_refresh_token(user.email),#can be used after
     }
 
 
