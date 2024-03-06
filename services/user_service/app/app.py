@@ -143,8 +143,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Async
         
     
     return {
-        "access_token": hash_context.create_access_token(user.email),
-        "refresh_token": hash_context.create_refresh_token(user.email),#can be used after
+        "access_token": hash_context.create_access_token(user),
+        "refresh_token": hash_context.create_refresh_token(user),#can be used after
     }
 
 

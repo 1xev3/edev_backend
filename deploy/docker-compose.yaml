@@ -7,6 +7,18 @@ volumes:
       o: bind
       type: none
       device: ./postgresql/data
+  policy-enforcement-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./policy-enforcement-data
+  user-service-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./user-service
 
 services:
   postgresql:
@@ -25,3 +37,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+
+  policy-enforcement-service:
+    build:
+      context: ../services/policy_enforcer
+      dockerfile: ./Dockerfile
+    ports:
+      - "5010:5010"
+    volumes:
+      - policy-enforcement-data:/mnt/
+    depends_on:
+      - postgresql
+      - user-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      POLICIES_CONFIG_PATH: ${POLICIES_CONFIG_PATH}
+
+  user-service:
+    build:
+      context: ../services/user_service
+      dockerfile: ./Dockerfile
+    ports:
+      - "5001:5001"
+    volumes:
+      - user-service-data:/mnt/
+    depends_on:
+      - postgresql
+    environment:
+      PG_ASYNC_DSN: ${PG_ASYNC_DSN}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET} #can be used after
+      RESET_PASSWORD_TOKEN_SECRET: ${RESET_PASSWORD_TOKEN_SECRET}
+      VERIFICATION_TOKEN_SECRET: ${VERIFICATION_TOKEN_SECRET}
+      DEFAULT_GROUPS_CONFIG_PATH: ${DEFAULT_GROUPS_CONFIG_PATH}

@@ -1,6 +1,8 @@
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from .database import models
+
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Union, Any
@@ -55,19 +57,19 @@ class HashContext():
             logging.error(E)
             return {}
 
-    def create_access_token(self, subject: Union[str, Any], expires_delta: int = None) -> str:
+    def create_access_token(self, subject: models.User, expires_delta: int = None) -> str:
         if expires_delta is not None:
             expires_delta = datetime.utcnow() + expires_delta
         else:
             expires_delta = datetime.utcnow() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         
         to_encode = schemas.TokenPayload(
-            sub=str(subject),
-            exp=expires_delta
+            sub=str(subject.email),
+            exp=expires_delta,
+            group_id=subject.group_id,
         ).model_dump()
 
         encoded_jwt = jwt.encode(to_encode, self.JWT_SECRET_KEY, self.ALGORITHM)
-        # print(jwt.decode(encoded_jwt, self.JWT_SECRET_KEY, self.ALGORITHM))
         return encoded_jwt
     
     def decode_access_token(self, token: str) -> dict:
@@ -78,15 +80,16 @@ class HashContext():
         return False
 
 
-    def create_refresh_token(self, subject: Union[str, Any], expires_delta: int = None) -> str:
+    def create_refresh_token(self, subject: models.User, expires_delta: int = None) -> str:
         if expires_delta is not None:
             expires_delta = datetime.utcnow() + expires_delta
         else:
             expires_delta = datetime.utcnow() + timedelta(minutes=self.REFRESH_TOKEN_EXPIRE_MINUTES)
         
         to_encode = schemas.TokenPayload(
-            sub=str(subject),
-            exp=expires_delta
+            sub=str(subject.email),
+            exp=expires_delta,
+            group_id=subject.group_id,
         ).model_dump()
 
         encoded_jwt = jwt.encode(to_encode, self.JWT_REFRESH_SECRET_KEY, self.ALGORITHM)

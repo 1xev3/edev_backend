@@ -1,0 +1,30 @@
+model: |
+    [request_definition]
+    r = sub, obj, act
+    
+    [policy_definition]
+    p = sub_rule, obj, act
+    
+    [policy_effect]
+    e = some(where (p.eft == allow))
+    
+    [matchers]
+    m = eval(p.sub_rule) && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)
+services:
+    - name: user-service
+      entrypoint: http://user-service:5001/
+      inject_token_in_swagger: True
+policies:
+    #USER SERVICE
+    - service: user-service
+      rule: r.sub.group_id == 1 #only admin
+      resource: /groups*
+      methods: (GET)|(POST)|(PUT)|(DELETE)
+    - service: user-service
+      resource: /auth/*
+      methods: POST
+      white_list: true
+    - service: user-service
+      resource: /users/*
+      methods: (GET)|(POST)|(PUT)|(DELETE)
+      rule: r.sub.group_id > -1

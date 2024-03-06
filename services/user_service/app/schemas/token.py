@@ -8,3 +8,4 @@ class TokenSchema(BaseModel):
 class TokenPayload(BaseModel):
     sub: str = None
     exp: datetime = None
+    group_id: int = None
