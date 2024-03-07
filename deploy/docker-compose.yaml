@@ -48,7 +48,8 @@ services:
     volumes:
       - policy-enforcement-data:/mnt/
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
     environment:
       JWT_SECRET: ${JWT_SECRET}
       POLICIES_CONFIG_PATH: ${POLICIES_CONFIG_PATH}
@@ -62,7 +63,8 @@ services:
     volumes:
       - user-service-data:/mnt/
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
     environment:
       PG_ASYNC_DSN: ${PG_ASYNC_DSN}
       JWT_SECRET: ${JWT_SECRET}
