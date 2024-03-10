@@ -106,8 +106,19 @@ async def register(data: schemas.CreateUserSchema, session: AsyncSession = Depen
     return JSONResponse(content={"message": "User created successfully"})
 
 
+
 @app.get("/users/me",tags=["users"])
 async def users_me(user: models.User = Depends(get_current_user)) -> schemas.UserSchema:
+    return user
+
+@app.patch("/users/me",tags=["users"])
+async def users_me(update_user: schemas.UserUpdateSchema, user: models.User = Depends(get_current_user), session: AsyncSession = Depends(get_async_session)) -> schemas.UserSchema:
+    user.nickname = update_user.nickname
+    user.hashed_password = hash_context.get_hashed_password(update_user.password)
+
+    session.add(user)
+    await session.commit()
+
     return user
 
 @app.post("/auth/logout",tags=["auth"])

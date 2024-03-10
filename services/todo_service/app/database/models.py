@@ -37,7 +37,7 @@ class Task(db.BASE):
     owner = Column(String, nullable=False)
 
     section_id = Column(Integer, ForeignKey(f'{db.SCHEMA}.sections.id'))
-    section = relationship('Section', back_populates='tasks', foreign_keys=[])
+    section = relationship('Section', back_populates='tasks', foreign_keys=[section_id])
 
 # class Group(db.BASE):
 #     __tablename__  = 'group'

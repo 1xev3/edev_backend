@@ -1,14 +1,16 @@
 from pydantic import BaseModel, Field, EmailStr
 
 
+class UserUpdateSchema(BaseModel):
+    nickname: str
+    password: str = Field(alias="password")
+
 class UserBaseSchema(BaseModel):
     email: EmailStr
     nickname: str
 
-
 class CreateUserSchema(UserBaseSchema):
     password: str = Field(alias="password")
-
 
 class UserSchema(UserBaseSchema):
     id: int
