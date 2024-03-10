@@ -72,3 +72,15 @@ services:
       RESET_PASSWORD_TOKEN_SECRET: ${RESET_PASSWORD_TOKEN_SECRET}
       VERIFICATION_TOKEN_SECRET: ${VERIFICATION_TOKEN_SECRET}
       DEFAULT_GROUPS_CONFIG_PATH: ${DEFAULT_GROUPS_CONFIG_PATH}
+
+  todo-service:
+    build:
+      context: ../services/todo_service
+      dockerfile: ./Dockerfile
+    ports:
+      - "5002:5002"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      PG_ASYNC_DSN: ${PG_ASYNC_DSN}

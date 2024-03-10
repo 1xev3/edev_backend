@@ -14,6 +14,9 @@ services:
     - name: user-service
       entrypoint: http://user-service:5001/
       inject_token_in_swagger: True
+    - name: todo-service
+      entrypoint: http://todo-service:5002/
+      inject_token_in_swagger: True
 policies:
     #USER SERVICE
     - service: user-service
@@ -26,5 +29,11 @@ policies:
       white_list: true
     - service: user-service
       resource: /users/*
-      methods: (GET)|(POST)|(PUT)|(DELETE)
+      methods: (GET)|(POST)|(PUT)|(DELETE)|(PATCH)
       rule: r.sub.group_id > -1
+
+    #TODO SERVICE
+    - service: todo-service
+      rule: r.sub.group_id > -1 #only registered users
+      resource: /todo*
+      methods: (GET)|(POST)|(PUT)|(DELETE)|(PATCH)

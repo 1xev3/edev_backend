@@ -12,14 +12,6 @@ class Config(BaseSettings):
         default = 'postgres://user:pass@localhost:5432/foobar',
     )
 
-    JWT_SECRET: SecretStr = Field(
-        alias='JWT_SECRET'
-    )
-
-    JWT_REFRESH_SECRET: SecretStr = Field(
-        alias='JWT_REFRESH_SECRET'
-    )
-
     @classmethod
     def settings_customise_sources(
         cls,
