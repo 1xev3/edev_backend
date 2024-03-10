@@ -45,9 +45,6 @@ app = FastAPI(
     title='Todo service',
     lifespan=lifespan
 )
-
-
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
         
 
 #redirect
@@ -59,7 +56,7 @@ async def docs():
 #####################
 #- Section related -#
 #####################
-@app.get("/sections", 
+@app.get("/todo/sections", 
          summary="Get all sections",
          tags=["todo"],
          response_model=list[schemas.Section]
@@ -73,7 +70,7 @@ async def get_sections(skip: int = 0, limit: int = 100,
 
     return await crud.get_sections(session, token_data.sub, skip, min(limit, 100))
 
-@app.get("/sections/{section_id}", 
+@app.get("/todo/sections/{section_id}", 
          summary="Get one section by ID",
          tags=["todo"],
          response_model=schemas.Section
@@ -91,7 +88,7 @@ async def get_section_by_id(section_id: int,
     
     return JSONResponse({"message": "Section not found"}, status_code=404)
 
-@app.delete("/sections/{section_id}", 
+@app.delete("/todo/sections/{section_id}", 
          summary="Delete section with tasks in it",
          tags=["todo"]
 )
@@ -108,7 +105,7 @@ async def delete_section(section_id: int,
     
     return JSONResponse({"message": "Section not found"}, status_code=404)
 
-@app.put("/sections/{section_id}", 
+@app.put("/todo/sections/{section_id}", 
          summary="Update section",
          tags=["todo"],
          response_model=schemas.Section
@@ -132,7 +129,7 @@ async def update_section_by_id(section_id: int,
     
     return JSONResponse({"message": "Section not found"}, status_code=404)
 
-@app.post("/sections", 
+@app.post("/todo/sections", 
          summary="Create new sections",
          tags=["todo"],
          response_model=schemas.Section
@@ -150,7 +147,7 @@ async def create_section(section: schemas.SectionCreate,
 ##################
 #- Task related -#
 ##################
-@app.post("/sections/{section_id}/tasks", 
+@app.post("/todo/sections/{section_id}/tasks", 
          summary="Upload new task to section",
          tags=["todo"],
          response_model=schemas.Task
@@ -175,7 +172,7 @@ async def upload_new_task(section_id: int,
     
     return JSONResponse({"message": "Section not found"}, status_code=400)
 
-@app.get("/sections/{section_id}/tasks", 
+@app.get("/todo/sections/{section_id}/tasks", 
          summary="Get all tasks",
          tags=["todo"],
          response_model=list[schemas.Task]
@@ -188,7 +185,7 @@ async def get_tasks(section_id: int, skip: int = 0, limit: int = 100,
     '''
     return await crud.get_tasks(section_id=section_id, owner=token_data.sub, session=session, skip=skip, limit=limit)
 
-@app.get("/sections/{section_id}/tasks/{task_id}", 
+@app.get("/todo/sections/{section_id}/tasks/{task_id}", 
          summary="Get task by ID",
          tags=["todo"],
          response_model=schemas.Task
@@ -206,7 +203,7 @@ async def get_task(section_id: int,
     
     return JSONResponse({"message": "Task or section not found"}, status_code=400)
 
-@app.put("/sections/{section_id}/tasks/{task_id}", 
+@app.put("/todo/sections/{section_id}/tasks/{task_id}", 
          summary="Edit task",
          tags=["todo"],
          response_model=schemas.Task
@@ -226,7 +223,7 @@ async def update_task(section_id: int,
 
     return JSONResponse({"message": "Task or section not found"}, status_code=400)
 
-@app.delete("/sections/{section_id}/tasks/{task_id}", 
+@app.delete("/todo/sections/{section_id}/tasks/{task_id}", 
          summary="Delete task",
          tags=["todo"]
 )
