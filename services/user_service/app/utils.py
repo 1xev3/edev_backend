@@ -19,7 +19,7 @@ class HashContext():
                 self, 
                 JWT_SECRET_KEY: str,
                 JWT_REFRESH_SECRET_KEY: str,
-                ACCESS_TOKEN_EXPIRE_MINUTES=30, # 30 minutes
+                ACCESS_TOKEN_EXPIRE_MINUTES=60, # 60 minutes
                 REFRESH_TOKEN_EXPIRE_MINUTES=60 * 24 * 7, # 7 days
                 ALGORITHM="HS256",
             ):
