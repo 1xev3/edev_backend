@@ -100,7 +100,7 @@ async def update_task(section_id: int, task_id: int, task_update: schemas.TaskUp
         return None
     
     for var, value in vars(task_update).items():
-        setattr(task, var, value) if value else None
+        setattr(task, var, value) if (value != None) else None
 
     session.add(task)
     await session.commit()
