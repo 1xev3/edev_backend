@@ -1,9 +1,10 @@
 from pydantic import BaseModel, Field, EmailStr
+import typing
 
 
 class UserUpdateSchema(BaseModel):
-    nickname: str
-    password: str = Field(alias="password")
+    nickname: typing.Optional[str]
+    password: typing.Optional[str] = Field(alias="password")
 
 class UserBaseSchema(BaseModel):
     email: EmailStr

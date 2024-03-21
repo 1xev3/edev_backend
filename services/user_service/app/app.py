@@ -113,8 +113,10 @@ async def users_me(user: models.User = Depends(get_current_user)) -> schemas.Use
 
 @app.patch("/users/me",tags=["users"])
 async def users_me(update_user: schemas.UserUpdateSchema, user: models.User = Depends(get_current_user), session: AsyncSession = Depends(get_async_session)) -> schemas.UserSchema:
-    user.nickname = update_user.nickname
-    user.hashed_password = hash_context.get_hashed_password(update_user.password)
+    if update_user.nickname != None:
+        user.nickname = update_user.nickname 
+    if update_user.password != None:
+        user.hashed_password = hash_context.get_hashed_password(update_user.password)
 
     session.add(user)
     await session.commit()
