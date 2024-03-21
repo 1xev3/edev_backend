@@ -3,8 +3,8 @@ import typing
 
 
 class UserUpdateSchema(BaseModel):
-    nickname: typing.Optional[str]
-    password: typing.Optional[str] = Field(alias="password")
+    nickname: typing.Optional[str] | None
+    password: typing.Optional[str] = Field(alias="password", default=None)
 
 class UserBaseSchema(BaseModel):
     email: EmailStr
